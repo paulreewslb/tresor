@@ -1,0 +1,7 @@
+{
+  "column": "BP_ratio",
+  "groupby_item": "industry",
+  "lower_percentile": 0.01,
+  "upper_percentile": 0.99,
+  "neutralize_item": ["beta", "dollar"]
+}
