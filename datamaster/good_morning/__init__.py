@@ -24,7 +24,7 @@
 
 from __future__ import absolute_import
 
-from data_handler.good_morning.good_morning import KeyRatiosDownloader,FinancialsDownloader
+from datamaster.good_morning.good_morning import KeyRatiosDownloader,FinancialsDownloader
 
 __name__ = 'good_morning'
 __author__ = 'Peter Cerno'
