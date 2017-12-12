@@ -1,10 +1,10 @@
 import numpy as _np
 import pandas as _pd
 
-import data_handler.data_analyzer as data_api
+import datamaster.data_loader as data_api
 
 import quandl
-import data_handler.good_morning as gm
+import datamaster.good_morning as gm
 
 quandl.ApiConfig.api_key = 'myyzV9yQuCz7LR_2k-43'
 

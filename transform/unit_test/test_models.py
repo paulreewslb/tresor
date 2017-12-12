@@ -1,7 +1,7 @@
 import pandas as _pd
 import numpy as _np
 
-import transform.models.models as md
+import transform.transforms.Tfuncs as md
 
 def test_models():
 

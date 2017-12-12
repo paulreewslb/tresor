@@ -1,0 +1,2 @@
+def memorize():
+    pass

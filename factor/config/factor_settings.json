@@ -1,0 +1,15 @@
+{
+  "P_212": {
+    "Universe": "SP500",
+    "Signal": "p_xy",
+    "Signal_Params": {
+      "x": 2,
+      "y": 12,
+      "price_item": "adjClose",
+      "data_source": "yahoo"
+    },
+    "TSeq":["trim_percentile", "rank_and_standardize", "neutralize"],
+    "Groupby_Item": "GICS Sub Industry",
+    "Neutralize_Item": ["dollar"]
+  }
+}
