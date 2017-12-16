@@ -135,6 +135,6 @@ class Industry(DataObj):
 
 
 if __name__ == '__main__':
-    price = Price(['AAPL','AMZN'], start='2017-01-01', end='2017-11-01', cache=True)
+    price = Price(['AAPL','AMZN'], start='2017-03-01', end='2017-11-01', cache=True)
     print(price.close)
 

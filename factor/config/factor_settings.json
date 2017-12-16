@@ -11,5 +11,19 @@
     "TSeq":["trim_percentile", "rank_and_standardize", "neutralize"],
     "Groupby_Item": "GICS Sub Industry",
     "Neutralize_Item": ["dollar"]
+  },
+
+    "P_03": {
+    "Universe": "SP500",
+    "Signal": "p_xy",
+    "Signal_Params": {
+      "x": 0,
+      "y": 3,
+      "price_item": "adjClose",
+      "data_source": "yahoo"
+    },
+    "TSeq":["trim_percentile", "rank_and_standardize", "neutralize"],
+    "Groupby_Item": "GICS Sub Industry",
+    "Neutralize_Item": ["dollar"]
   }
 }

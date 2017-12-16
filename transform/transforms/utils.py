@@ -10,7 +10,7 @@ def create_dummy_for_neutralization(series, *args, **kwargs):
         groupby_item = kwargs['Groupby_Item']
         grouping = data_loader.Industry(kwargs['Universe']).map(groupby_item).reindex(series.index)
     beta = np.random.rand(len(series))  # need to add code for beta and reindex by series.index
-    if 'beta' in kwargs['neutralize_item']:
+    if 'beta' in kwargs['Neutralize_Item']:
         if 'Groupby_Item' in kwargs:
             for item in grouping.unique():
                 dummy_cols.append(item + '_beta_dummy')
@@ -18,7 +18,7 @@ def create_dummy_for_neutralization(series, *args, **kwargs):
         else:
             dummy_cols.append('beta_dummy')
             dummy_dm['beta_dummy'] = beta
-    if 'dollar' in kwargs['neutralize_item']:
+    if 'dollar' in kwargs['Neutralize_Item']:
         if 'Groupby_Item' in kwargs:
             for item in grouping.unique():
                 dummy_cols.append(item + '_dollar_dummy')

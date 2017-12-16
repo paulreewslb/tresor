@@ -11,13 +11,13 @@ def trim_percentile(series, *args, **kwargs):
     if 'Groupby_Item' in kwargs:
         groupby_item = kwargs['Groupby_Item']
         grouping = data_loader.Industry(kwargs['Universe']).map(groupby_item).reindex(series.index)
-        lower_bound = series.groupby(grouping).transform(lambda x:_np.percentile(x, 100 * lower_percentile))
-        upper_bound = series.groupby(grouping).transform(lambda x:_np.percentile(x, 100 * upper_percentile))
+        lower_bound = series.groupby(grouping).transform(lambda x: _np.percentile(x, 100 * lower_percentile))
+        upper_bound = series.groupby(grouping).transform(lambda x: _np.percentile(x, 100 * upper_percentile))
     else:
         lower_bound = _np.percentile(series, lower_percentile)
         upper_bound = _np.percentile(series, upper_percentile)
 
-    output = (series > lower_bound) * (series < upper_bound) * series + \
+    output = ((series > lower_bound) & (series < upper_bound)) * series + \
              (series <= lower_bound) * lower_bound + \
              (series >= upper_bound) * upper_bound
     auxiliary = _pd.DataFrame({'input': series, 'lower_bound': lower_bound, 'upper_bound': upper_bound,
@@ -30,8 +30,8 @@ def rank_and_standardize(series, *args, **kwargs):
         groupby_item = kwargs['Groupby_Item']
         grouping = data_loader.Industry(kwargs['Universe']).map(groupby_item).reindex(series.index)
         rank = series.groupby(grouping).transform(_pd.Series.rank)
-        mean = series.groupby(grouping).transform(_np.mean)
-        std = series.groupby(grouping).transform(_np.std)
+        mean = rank.groupby(grouping).transform(_np.mean)
+        std = rank.groupby(grouping).transform(_np.std)
     else:
         rank = _pd.Series.rank(series)
         mean = _np.mean(series)
