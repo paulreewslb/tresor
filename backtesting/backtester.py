@@ -74,30 +74,29 @@ class Backtester(object):
         rets = self.returns
         views = self.views
         rf = 0  # need to be updated to specify risk free rate
-        values = pd.DataFrame(0, index=rets.index, columns=rets.columns)
-        cash = pd.Series(0, index=rets.index)
+        positions = pd.DataFrame(0, index=rets.index, columns=rets.columns)
+        pnl = pd.Series(0, index=rets.index)
         j = 0
         j_max = len(self.rebal_dates)
-        for i in range(0, len(values)):
+        for i in range(0, len(positions)):
             if j >= j_max:
                 if i == 0: continue
-                values.iloc[i] = values.iloc[i - 1] * (1 + rets.iloc[i])
-                cash.iloc[i] = cash.iloc[i - 1] * (1 + rf)
-            elif values.index[i] < views.index[j]:
+                pnl.iloc[i] = pnl.iloc[i-1] + sum(positions.iloc[i-1]*rets.iloc[i])
+                positions.iloc[i] = positions.iloc[i-1] * (1 + rets.iloc[i])
+            elif positions.index[i] < views.index[j]:
                 if i == 0: continue
-                values.iloc[i] = values.iloc[i - 1] * (1 + rets.iloc[i])
-                cash.iloc[i] = cash.iloc[i - 1] * (1 + rf)
+                pnl.iloc[i] = pnl.iloc[i-1] + sum(positions.iloc[i-1]*rets.iloc[i])
+                positions.iloc[i] = positions.iloc[i-1] * (1 + rets.iloc[i])
             else:
                 # can set warning here if values.index[i] is far later than views.index[j] say 3 days
-                values.iloc[i] = views.iloc[j]
                 if i == 0:
-                    cash.iloc[i] = -sum(values.iloc[i])
+                    positions.iloc[i] = views.iloc[j]
                 else:
-                    cash.iloc[i] = cash.iloc[i-1]*(1+rf) + sum(values.iloc[i-1]*(1+rets.iloc[i]) - values.iloc[i])
+                    pnl.iloc[i] = pnl.iloc[i-1] + sum(positions.iloc[i-1]*rets.iloc[i])
+                    positions.iloc[i] = (1 + pnl.iloc[i]) * views.iloc[j]
                 j = j+1
 
-        pnl = values.sum(axis=1) + cash - sum(values.iloc[0])
-        return pnl
+        return pnl, positions
 
 
 
