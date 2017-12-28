@@ -81,7 +81,7 @@ class RiskModel(object):
         prod = comp_ret.multiply(idx_ret, axis='index')
         idx_ret_sq = idx_ret ** 2
 
-        weights, sum_weight = self.get_ewma_weights(idx_ret_sq, decay)
+        weights, sum_weight = self.get_ewma_weights(idx_ret_sq, lookback_window, decay)
 
         idx_ret_sq = idx_ret_sq.multiply(weights, axis='index')
         prod = prod.multiply(weights, axis='index')
@@ -95,8 +95,8 @@ class RiskModel(object):
 
         idx_ret, comp_ret = self.get_rolling_ret(rolling_ret_window)
 
-        idx_wgt, idx_sum_wgt = self.get_ewma_weights(idx_ret, decay)
-        comp_wgt, comp_sum_wgt = self.get_ewma_weights(comp_ret, decay)
+        idx_wgt, idx_sum_wgt = self.get_ewma_weights(idx_ret, lookback_window, decay)
+        comp_wgt, comp_sum_wgt = self.get_ewma_weights(comp_ret, lookback_window, decay)
 
         res_idx = _np.sqrt((idx_ret ** 2).multiply(idx_wgt, axis='index').rolling(lookback_window).sum().
                            div(idx_sum_wgt, axis='index') * 260 / rolling_ret_window)
