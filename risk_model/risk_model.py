@@ -61,7 +61,7 @@ class RiskModel(object):
         return idx_rolling_ret.iloc[(rolling_window - 1):], comp_rolling_ret.iloc[(rolling_window - 1):]
 
     @classmethod
-    def get_ewma_weights(cls, df, decay):
+    def get_ewma_weights(cls, df, lookback_window, decay):
 
         assert type(df) in [_pd.DataFrame, _pd.Series], "df should be a dataframe or series"
         assert decay > 0 and decay <= 1, " 0 < decay <= 1"
@@ -69,7 +69,10 @@ class RiskModel(object):
         idx = df.index
         weights = _np.array(map(lambda x: decay ** (len(idx) - x - 1), range(len(idx))))
 
-        return _pd.Series(weights, index=idx, name='ewma_weight')
+        weights = _pd.Series(weights, index=idx, name='ewma_weight')
+        sum_weight = weights.rolling(lookback_window).sum()
+
+        return weights, sum_weight
 
     def get_realized_beta(self, lookback_window, rolling_ret_window=1, decay=1):
 
@@ -78,8 +81,10 @@ class RiskModel(object):
         prod = comp_ret.multiply(idx_ret, axis='index')
         idx_ret_sq = idx_ret ** 2
 
-        idx_ret_sq = idx_ret_sq.multiply(self.get_ewma_weights(idx_ret_sq, decay), axis='index')
-        prod = prod.multiply(self.get_ewma_weights(prod, decay), axis='index')
+        weights, sum_weight = self.get_ewma_weights(idx_ret_sq, decay)
+
+        idx_ret_sq = idx_ret_sq.multiply(weights, axis='index')
+        prod = prod.multiply(weights, axis='index')
 
         numerator = prod.rolling(lookback_window).sum()
         denominator = idx_ret_sq.rolling(lookback_window).sum()
@@ -90,15 +95,13 @@ class RiskModel(object):
 
         idx_ret, comp_ret = self.get_rolling_ret(rolling_ret_window)
 
-        idx_wgt = self.get_ewma_weights(idx_ret, decay)
-        comp_wgt = self.get_ewma_weights(comp_ret, decay)
+        idx_wgt, idx_sum_wgt = self.get_ewma_weights(idx_ret, decay)
+        comp_wgt, comp_sum_wgt = self.get_ewma_weights(comp_ret, decay)
 
         res_idx = _np.sqrt((idx_ret ** 2).multiply(idx_wgt, axis='index').rolling(lookback_window).sum().
-                           div(idx_wgt, axis='index') * (1 - decay) / (1-decay ** lookback_window)
-                           * 260 / rolling_ret_window)
+                           div(idx_sum_wgt, axis='index') * 260 / rolling_ret_window)
         res_comp = _np.sqrt((comp_ret.applymap(lambda x: x**2)).multiply(comp_wgt, axis='index').
-                            rolling(lookback_window).sum().div(idx_wgt, axis='index') *
-                            (1 - decay) / (1 - decay ** lookback_window)* 260 / rolling_ret_window)
+                            rolling(lookback_window).sum().div(comp_sum_wgt, axis='index') * 260 / rolling_ret_window)
 
         return res_idx, res_comp
 
