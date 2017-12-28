@@ -52,8 +52,8 @@ class RiskModel(object):
     def get_rolling_ret(self, rolling_window):
 
         if self.__ret_type__ == 'simple':
-            comp_rolling_ret = self.__component_returns__.rolling(rolling_window).apply(lambda x: _np.prod(1 + x))
-            idx_rolling_ret = self.__index_returns__.rolling(rolling_window).apply(lambda x: _np.prod(1 + x))
+            comp_rolling_ret = self.__component_returns__.rolling(rolling_window).apply(lambda x: _np.prod(1 + x)) - 1
+            idx_rolling_ret = self.__index_returns__.rolling(rolling_window).apply(lambda x: _np.prod(1 + x)) - 1
         else:
             comp_rolling_ret = self.__component_returns__.rolling(rolling_window).sum()
             idx_rolling_ret = self.__index_returns__.rolling(rolling_window).sum()
@@ -67,8 +67,7 @@ class RiskModel(object):
         assert decay > 0 and decay <= 1, " 0 < decay <= 1"
 
         idx = df.index
-        weights = _np.array(map(lambda x: decay * (len(idx) - x + 1), range(len(idx))))
-        weights = weights / sum(weights)
+        weights = _np.array(map(lambda x: decay ** (len(idx) - x - 1), range(len(idx))))
 
         return _pd.Series(weights, index=idx, name='ewma_weight')
 
@@ -94,10 +93,12 @@ class RiskModel(object):
         idx_wgt = self.get_ewma_weights(idx_ret, decay)
         comp_wgt = self.get_ewma_weights(comp_ret, decay)
 
-        res_idx = _np.sqrt((idx_ret ** 2).multiply(idx_wgt, axis='index').rolling(lookback_window).sum() *
-                           260 / rolling_ret_window)
+        res_idx = _np.sqrt((idx_ret ** 2).multiply(idx_wgt, axis='index').rolling(lookback_window).sum().
+                           div(idx_wgt, axis='index') * (1 - decay) / (1-decay ** lookback_window)
+                           * 260 / rolling_ret_window)
         res_comp = _np.sqrt((comp_ret.applymap(lambda x: x**2)).multiply(comp_wgt, axis='index').
-                            rolling(lookback_window).sum() * 260 / rolling_ret_window)
+                            rolling(lookback_window).sum().div(idx_wgt, axis='index') *
+                            (1 - decay) / (1 - decay ** lookback_window)* 260 / rolling_ret_window)
 
         return res_idx, res_comp
 
@@ -108,8 +109,9 @@ class RiskModel(object):
         df_all = _pd.concat([idx_ret, comp_ret], axis=1)
 
         l = []
-        for date in df_all.index[:-lookback_window - 1]:
-            temp = df_all.loc[date: date + lookback_window + 1].corr().reset_index()
+        for date in df_all.index[:-lookback_window]:
+            # Note loc includes the last item, index excludes last item
+            temp = df_all.loc[date: date + _pd.offsets.BDay(lookback_window - 1)].corr().reset_index()
             temp.rename(columns={'index': 'ticker'}, inplace=True)
             temp['date'] = date
             l.append(temp)
